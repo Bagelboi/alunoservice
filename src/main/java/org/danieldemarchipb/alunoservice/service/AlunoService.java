@@ -1,6 +1,7 @@
 package org.danieldemarchipb.alunoservice.service;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.apache.hc.client5.http.utils.Base64;
 import org.danieldemarchipb.alunoservice.client.ProjectClient;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class AlunoService {
     @Autowired
@@ -46,7 +48,7 @@ public class AlunoService {
     public Aluno save(Aluno aluno) {
         aluno.setNome(aluno.getNome().trim());
         aluno.setProjetos_id(new HashSet<>());
-        aluno.setSenha(getHash(aluno.getSenha().trim()));
+        aluno.setSenha(getHash(aluno.getSenha()));
         return repo.save(aluno);
     }
     public boolean atualizarSenha(Long id, String senha_nova) {
@@ -63,6 +65,7 @@ public class AlunoService {
         getById(id).ifPresent( a -> {
             if (!proj.isEmpty()) {
                 a.getProjetos_id().add(proj_id);
+                log.info("projeto adicionado para aluno:{}", a);
                 save(a);
             }
         });
@@ -72,6 +75,7 @@ public class AlunoService {
         Optional<Aluno> aluno = getByProjetoID(proj_id);
         aluno.ifPresent( a -> {
            a.getProjetos_id().remove(proj_id);
+           log.info("projeto apagado de aluno:{}", a);
            save(a);
         });
         return aluno.isPresent();
@@ -80,6 +84,7 @@ public class AlunoService {
         Optional<Aluno> aluno = getById(id);
         aluno.ifPresent( a -> {
             a.getProjetos_id().clear();
+            log.info("projeto todos apgados de aluno:{}", a);
             save(a);
         });
         return aluno.isPresent();
@@ -90,8 +95,10 @@ public class AlunoService {
     }
 
     @PostConstruct
-    public void criarUsuarios() {
-        save(new Aluno("Daniel", "123456", Rank.ADMIN));
+    public void criarUsuarios() throws InterruptedException {
+        save(new Aluno(999L, "Daniel", "123456", Rank.ADMIN));
+        Thread.sleep(500);
+        save(new Aluno(1000L, "Jessica", "123456", Rank.USER));
     }
 
 }
