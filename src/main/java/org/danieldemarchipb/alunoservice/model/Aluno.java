@@ -5,9 +5,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -20,10 +22,16 @@ public class Aluno {
     private String nome;
     private String senha;
     private Rank rank;
-    private HashSet<Long> projetos_id;
+    @ElementCollection
+    private Set<Long> projetos_id = new HashSet<>();
 
-    public Aluno(String _nome, String _senha, Rank _rank) {
+    public AlunoDTO toDto() {
+        return new AlunoDTO(id, nome, rank, projetos_id);
+    }
+
+    public Aluno(Long id, String _nome, String _senha, Rank _rank) {
         this();
+        this.id = id;
         this.nome = _nome;
         this.senha = _senha;
         this.rank  = _rank;

@@ -3,6 +3,7 @@ package org.danieldemarchipb.alunoservice.controller;
 import org.danieldemarchipb.alunoservice.model.Aluno;
 import org.danieldemarchipb.alunoservice.model.AlunoDTO;
 import org.danieldemarchipb.alunoservice.model.LoginDTO;
+import org.danieldemarchipb.alunoservice.model.Rank;
 import org.danieldemarchipb.alunoservice.service.AlunoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,29 +24,36 @@ public class AlunoController {
     @GetMapping
     public ResponseEntity<List<AlunoDTO>> getAllAlunos() {
         List<AlunoDTO> alunos = new ArrayList<>();
-        alunoService.getAll().forEach( a -> alunos.add(new AlunoDTO(a.getId(), a.getNome(), a.getRank() , a.getProjetos_id())) );
+        alunoService.getAll().forEach( a -> alunos.add(a.toDto()) );
         return ResponseEntity.ok(alunos);
     }
 
     @GetMapping("/nome/{nome}")
     public ResponseEntity<AlunoDTO> getAlunoById(@PathVariable String nome) {
         return alunoService.getByNome(nome)
-                .map( a -> ResponseEntity.ok( new AlunoDTO(a.getId(), a.getNome(), a.getRank() , a.getProjetos_id())) )
+                .map( a -> ResponseEntity.ok( a.toDto()) )
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<AlunoDTO> getAlunoById(@PathVariable Long id) {
         return alunoService.getById(id)
-                .map( a -> ResponseEntity.ok( new AlunoDTO(a.getId(), a.getNome(), a.getRank() , a.getProjetos_id())) )
+                .map( a -> ResponseEntity.ok( a.toDto()) )
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/by_proj/{id}")
     public ResponseEntity<AlunoDTO> getAlunoByProjId(@PathVariable Long id) {
         return alunoService.getByProjetoID(id)
-                .map( a -> ResponseEntity.ok( new AlunoDTO(a.getId(), a.getNome(), a.getRank() , a.getProjetos_id())) )
+                .map( a -> ResponseEntity.ok( a.toDto()) )
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<AlunoDTO> criarAluno(@RequestBody Aluno a) {
+        a.setRank(Rank.USER);
+        a = alunoService.save(a);
+        return ResponseEntity.ok(a.toDto());
     }
 
     @PutMapping("/{id}/senha")
@@ -83,8 +91,8 @@ public class AlunoController {
     @PostMapping("/login")
     public ResponseEntity<AlunoDTO> login(@RequestBody LoginDTO login) {
         Optional<Aluno> aluno = alunoService.getByNome(login.nome());
-        if (aluno.isPresent() && alunoService.getHash(login.senha().trim()).equals( aluno.get().getSenha() )) {
-            return aluno.map( a -> ResponseEntity.ok( new AlunoDTO(a.getId(), a.getNome(), a.getRank() , a.getProjetos_id()))).get();
+        if (aluno.isPresent() && alunoService.getHash(login.senha()).equals( aluno.get().getSenha() )) {
+            return aluno.map( a -> ResponseEntity.ok( a.toDto())).get();
         }
         return ResponseEntity.badRequest().build();
     }
