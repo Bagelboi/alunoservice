@@ -54,7 +54,7 @@ public class AlunoService {
     public boolean atualizarSenha(Long id, String senha_nova) {
         getById(id).ifPresent( a -> {
             a.setSenha( getHash(senha_nova) );
-            save(a);
+            repo.save(a);
         } );
         return getById(id).isPresent();
     }
@@ -66,7 +66,7 @@ public class AlunoService {
             if (!proj.isEmpty()) {
                 a.getProjetos_id().add(proj_id);
                 log.info("projeto adicionado para aluno:{}", a);
-                save(a);
+                repo.save(a);
             }
         });
         return getById(id).isPresent() && proj.isPresent();
@@ -76,7 +76,7 @@ public class AlunoService {
         aluno.ifPresent( a -> {
            a.getProjetos_id().remove(proj_id);
            log.info("projeto apagado de aluno:{}", a);
-           save(a);
+           repo.save(a);
         });
         return aluno.isPresent();
     }
@@ -85,7 +85,7 @@ public class AlunoService {
         aluno.ifPresent( a -> {
             a.getProjetos_id().clear();
             log.info("projeto todos apgados de aluno:{}", a);
-            save(a);
+            repo.save(a);
         });
         return aluno.isPresent();
     }
